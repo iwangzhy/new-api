@@ -138,7 +138,7 @@ func main() {
 	server.Use(middleware.RequestId())
 	middleware.SetUpLogger(server)
 	// Initialize session store
-	store := cookie.NewStore([]byte(common.SessionSecret))
+	store := cookie.NewStore([]byte(common.SessionSecret)) // 将数据以加密的形式存在客户端,每次设置和获取时都会自动进行加解密
 	store.Options(sessions.Options{
 		Path:     "/",
 		MaxAge:   2592000, // 30 days
@@ -146,8 +146,13 @@ func main() {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
+	// 为每个 HTTP 请求自动注入会话管理功能
+	// session, 客户端 Cookie 存储的 key， Cookie: session=xxxx
+	// store, 存储引擎，进行加解密操作
+	// sessions.Sessions 将输入存入 c *gin.Context 中 key="github.com/gin-contrib/sessions" 的数据
 	server.Use(sessions.Sessions("session", store))
 
+	// 设置 go-gin 的路由
 	router.SetRouter(server, buildFS, indexPage)
 	var port = os.Getenv("PORT")
 	if port == "" {

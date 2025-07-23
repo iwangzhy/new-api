@@ -48,6 +48,7 @@ func InitEnv() {
 			SessionSecret = ss
 		}
 	}
+	// go 在比较字符串的时候，是不用考虑指针问题的。
 	if os.Getenv("CRYPTO_SECRET") != "" {
 		CryptoSecret = os.Getenv("CRYPTO_SECRET")
 	} else {
