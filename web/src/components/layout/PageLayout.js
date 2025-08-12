@@ -23,21 +23,27 @@ const PageLayout = () => {
   const { i18n } = useTranslation();
   const location = useLocation();
 
+  // 必须要隐藏 footer 路由
   const shouldHideFooter = location.pathname === '/console/playground' || location.pathname.startsWith('/console/chat');
 
+  // 是否要填充 padding 属性
   const shouldInnerPadding = location.pathname.includes('/console') &&
     !location.pathname.startsWith('/console/chat') &&
     location.pathname !== '/console/playground';
 
+  // 是否为 console（控制台页面） 路由
   const isConsoleRoute = location.pathname.startsWith('/console');
+  // 是否应该展示侧边栏
   const showSider = isConsoleRoute && (!isMobile || drawerOpen);
 
+  // 当 isMobile、drawerOpen、collapsed、setCollapsed 变化时，重新计算是否应该显示 侧边栏
   useEffect(() => {
     if (isMobile && drawerOpen && collapsed) {
       setCollapsed(false);
     }
   }, [isMobile, drawerOpen, collapsed, setCollapsed]);
 
+  // 尝试从 localStorage 加载用户
   const loadUser = () => {
     let user = localStorage.getItem('user');
     if (user) {
@@ -46,12 +52,14 @@ const PageLayout = () => {
     }
   };
 
+  // 请求 /api/status 接口
   const loadStatus = async () => {
     try {
       const res = await API.get('/api/status');
       const { success, data } = res.data;
-      if (success) {
-        statusDispatch({ type: 'set', payload: data });
+      if (success) { // 成功
+        statusDispatch({ type: 'set', payload: data }); // set status
+        // 将 /api/status 的响应结果写入 localStorage
         setStatusData(data);
       } else {
         showError('Unable to connect to server');
@@ -64,24 +72,31 @@ const PageLayout = () => {
   useEffect(() => {
     loadUser();
     loadStatus().catch(console.error);
-    let systemName = getSystemName();
+    let systemName = getSystemName(); // 获取系统名称，已经通过 loadStatus() 方法加载到  localStorage
     if (systemName) {
       document.title = systemName;
     }
-    let logo = getLogo();
+    let logo = getLogo(); // logo 的路径
     if (logo) {
+      /*
+       *  link[rel~='icon'] 属性选择器，选择 link 标签，具有 ref 属性，属性值包含独立单吃 icon 的元素
+       *  ~= 是 "包含单词" 匹配符（Word Match）
+       */
       let linkElement = document.querySelector("link[rel~='icon']");
       if (linkElement) {
         linkElement.href = logo;
       }
     }
-    const savedLang = localStorage.getItem('i18nextLng');
+    const savedLang = localStorage.getItem('i18nextLng'); // i18n 的配置
     if (savedLang) {
       i18n.changeLanguage(savedLang);
     }
   }, [i18n]);
 
   return (
+    /*
+      semi-ui 的组件库：https://semi.design/zh-CN/basic/layout
+    */
     <Layout
       style={{
         height: '100vh',
@@ -101,6 +116,7 @@ const PageLayout = () => {
           zIndex: 100,
         }}
       >
+        {/* 系统的 header */}
         <HeaderBar onMobileMenuToggle={() => setDrawerOpen(prev => !prev)} drawerOpen={drawerOpen} />
       </Header>
       <Layout

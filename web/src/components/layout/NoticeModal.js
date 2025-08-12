@@ -7,6 +7,9 @@ import { IllustrationNoContent, IllustrationNoContentDark } from '@douyinfe/semi
 import { StatusContext } from '../../context/Status/index.js';
 import { Bell, Megaphone } from 'lucide-react';
 
+/*
+  系统公告的弹框
+*/
 const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadKeys = [] }) => {
   const { t } = useTranslation();
   const [noticeContent, setNoticeContent] = useState('');
@@ -15,12 +18,16 @@ const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadK
 
   const [statusState] = useContext(StatusContext);
 
+  // 公告列表
   const announcements = statusState?.status?.announcements || [];
 
+  // 未读 keys
   const unreadSet = useMemo(() => new Set(unreadKeys), [unreadKeys]);
 
+  // 获取公告的 key
   const getKeyForItem = (item) => `${item?.publishDate || ''}-${(item?.content || '').slice(0, 30)}`;
 
+  // 处理前 20 条公告
   const processedAnnouncements = useMemo(() => {
     return (announcements || []).slice(0, 20).map(item => ({
       key: getKeyForItem(item),
@@ -32,19 +39,23 @@ const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadK
     }));
   }, [announcements, unreadSet]);
 
+  // notice 关闭时间
   const handleCloseTodayNotice = () => {
     const today = new Date().toDateString();
     localStorage.setItem('notice_close_date', today);
     onClose();
   };
 
+  // 显示公告
   const displayNotice = async () => {
     setLoading(true);
     try {
+      // 请求 /api/notice
       const res = await API.get('/api/notice');
       const { success, message, data } = res.data;
       if (success) {
         if (data !== '') {
+          // 解析为 html
           const htmlNotice = marked.parse(data);
           setNoticeContent(htmlNotice);
         } else {
@@ -60,18 +71,21 @@ const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadK
     }
   };
 
+  // visible 切换时，判断是否显示公告
   useEffect(() => {
     if (visible) {
       displayNotice();
     }
   }, [visible]);
 
+  // active  tab
   useEffect(() => {
     if (visible) {
       setActiveTab(defaultTab);
     }
   }, [defaultTab, visible]);
 
+  // 渲染 markdown 公告
   const renderMarkdownNotice = () => {
     if (loading) {
       return <div className="py-12"><Empty description={t('加载中...')} /></div>;
@@ -97,6 +111,7 @@ const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadK
     );
   };
 
+  // 公告 timeline
   const renderAnnouncementTimeline = () => {
     if (processedAnnouncements.length === 0) {
       return (
@@ -143,6 +158,7 @@ const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadK
     );
   };
 
+  // 渲染 body
   const renderBody = () => {
     if (activeTab === 'inApp') {
       return renderMarkdownNotice();
@@ -150,6 +166,7 @@ const NoticeModal = ({ visible, onClose, isMobile, defaultTab = 'inApp', unreadK
     return renderAnnouncementTimeline();
   };
 
+  /* jsx 元素*/
   return (
     <Modal
       title={

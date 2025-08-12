@@ -68,6 +68,9 @@ const LoginForm = () => {
     localStorage.setItem('aff', affCode);
   }
 
+  /*
+  * 这里使用到了 useState 的惰性函数，只有在组件初始化的时候，调用一次，后续不会再调用
+  * */
   const [status] = useState(() => {
     const savedStatus = localStorage.getItem('status');
     return savedStatus ? JSON.parse(savedStatus) : {};

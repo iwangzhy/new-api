@@ -36,41 +36,44 @@ import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed.js';
 
 const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
   const { t, i18n } = useTranslation();
-  const [userState, userDispatch] = useContext(UserContext);
-  const [statusState, statusDispatch] = useContext(StatusContext);
-  const isMobile = useIsMobile();
-  const [collapsed, toggleCollapsed] = useSidebarCollapsed();
-  const [isLoading, setIsLoading] = useState(true);
+  const [userState, userDispatch] = useContext(UserContext); // 用户信息
+  const [statusState, statusDispatch] = useContext(StatusContext); // /api/status
+  const isMobile = useIsMobile(); // 移动端
+  const [collapsed, toggleCollapsed] = useSidebarCollapsed(); // 侧边栏折叠
+  const [isLoading, setIsLoading] = useState(true); // 是否正在加载
   let navigate = useNavigate();
   const [currentLang, setCurrentLang] = useState(i18n.language);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // 移动端显示菜单
   const location = useLocation();
-  const [noticeVisible, setNoticeVisible] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const loadingStartRef = useRef(Date.now());
+  const [noticeVisible, setNoticeVisible] = useState(false); // 通知
+  const [unreadCount, setUnreadCount] = useState(0); // 未读消息
+  const loadingStartRef = useRef(Date.now()); // loading 开始时间
 
-  const systemName = getSystemName();
-  const logo = getLogo();
-  const currentDate = new Date();
-  const isNewYear = currentDate.getMonth() === 0 && currentDate.getDate() === 1;
+  const systemName = getSystemName(); // 系统名称
+  const logo = getLogo(); // logo 路径
+  const currentDate = new Date(); // 时间
+  const isNewYear = currentDate.getMonth() === 0 && currentDate.getDate() === 1; // 新的一年
 
-  const isSelfUseMode = statusState?.status?.self_use_mode_enabled || false;
-  const docsLink = statusState?.status?.docs_link || '';
-  const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
+  const isSelfUseMode = statusState?.status?.self_use_mode_enabled || false; // 自用模式
+  const docsLink = statusState?.status?.docs_link || ''; // 文档连接
+  const isDemoSiteMode = statusState?.status?.demo_site_enabled || false; // demo 模式
 
-  const isConsoleRoute = location.pathname.startsWith('/console');
+  const isConsoleRoute = location.pathname.startsWith('/console'); // 控制台页面
 
   const theme = useTheme();
   const setTheme = useSetTheme();
 
-  const announcements = statusState?.status?.announcements || [];
+  const announcements = statusState?.status?.announcements || []; // 公告
 
+  // 拼接公告的 key, publishDate-content.slice(0,30) 前 30 位字符
   const getAnnouncementKey = (a) => `${a?.publishDate || ''}-${(a?.content || '').slice(0, 30)}`;
 
+  // 计算未读数量
   const calculateUnreadCount = () => {
     if (!announcements.length) return 0;
     let readKeys = [];
     try {
+      // 获取已读公告的 keys
       readKeys = JSON.parse(localStorage.getItem('notice_read_keys')) || [];
     } catch (_) {
       readKeys = [];
@@ -79,6 +82,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     return announcements.filter((a) => !readSet.has(getAnnouncementKey(a))).length;
   };
 
+  // 获取未读 keys
   const getUnreadKeys = () => {
     if (!announcements.length) return [];
     let readKeys = [];
@@ -91,11 +95,13 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     return announcements.filter((a) => !readSet.has(getAnnouncementKey(a))).map(getAnnouncementKey);
   };
 
+  // announcements 有变化时，重新计算 未读数量
   useEffect(() => {
     setUnreadCount(calculateUnreadCount());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcements]);
 
+  // 主页面 links
   const mainNavLinks = [
     {
       text: t('首页'),
@@ -112,7 +118,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
       itemKey: 'pricing',
       to: '/pricing',
     },
-    ...(docsLink
+    ...(docsLink // 是否配置了文档链接
       ? [
         {
           text: t('文档'),
@@ -129,16 +135,19 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     },
   ];
 
+  // 登出犯法
   async function logout() {
     await API.get('/api/user/logout');
     showSuccess(t('注销成功!'));
     userDispatch({ type: 'logout' });
     localStorage.removeItem('user');
-    navigate('/login');
-    setMobileMenuOpen(false);
+    navigate('/login'); // 跳转至登录页
+    setMobileMenuOpen(false); // 移动端设置 menu 关闭
   }
 
+  // 新的一年
   const handleNewYearClick = () => {
+    // 一个简易的烟花库。https://github.com/crashmax-dev/fireworks-js
     fireworks.init('root', {});
     fireworks.start();
     setTimeout(() => {
@@ -146,10 +155,12 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     }, 3000);
   };
 
+  // 显示通知
   const handleNoticeOpen = () => {
     setNoticeVisible(true);
   };
 
+  // 关闭通知
   const handleNoticeClose = () => {
     setNoticeVisible(false);
     if (announcements.length) {
@@ -159,12 +170,15 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
       } catch (_) {
         readKeys = [];
       }
+      // 关闭的同时更新 localStorage
       const mergedKeys = Array.from(new Set([...readKeys, ...announcements.map(getAnnouncementKey)]));
       localStorage.setItem('notice_read_keys', JSON.stringify(mergedKeys));
     }
+    // 将未读数量 置位 0
     setUnreadCount(0);
   };
 
+  // 主题模式
   useEffect(() => {
     if (theme === 'dark') {
       document.body.setAttribute('theme-mode', 'dark');
@@ -176,11 +190,14 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
 
     const iframe = document.querySelector('iframe');
     if (iframe) {
+      // 向 iframe 发送一个消息， * 表示不限制接收消息的来源
+      // iframe 通过 window.addEventListener('message', handleMessage); 接收消息
       iframe.contentWindow.postMessage({ themeMode: theme }, '*');
     }
 
   }, [theme, isNewYear]);
 
+  // 切换语言
   useEffect(() => {
     const handleLanguageChanged = (lng) => {
       setCurrentLang(lng);
@@ -207,11 +224,13 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     }
   }, [statusState?.status]);
 
+  // 切换语言
   const handleLanguageChange = (lang) => {
     i18n.changeLanguage(lang);
     setMobileMenuOpen(false);
   };
 
+  // 点击 nav
   const handleNavLinkClick = (itemKey) => {
     if (itemKey === 'home') {
       // styleDispatch(styleActions.setSider(false)); // This line is removed
@@ -219,6 +238,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     setMobileMenuOpen(false);
   };
 
+  // 渲染 nav
   const renderNavLinks = (isMobileView = false, isLoading = false) => {
     if (isLoading) {
       const skeletonLinkClasses = isMobileView
@@ -228,11 +248,14 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
         .fill(null)
         .map((_, index) => (
           <div key={index} className={skeletonLinkClasses}>
+            {/*
+              骨架屏(Skeleton): 在需要等待加载内容的位置提供的占位组件
+            */}
             <Skeleton
               loading={true}
               active
               placeholder={
-                <Skeleton.Title
+                <Skeleton.Title /*占位标题*/
                   active
                   style={{ width: isMobileView ? 100 : 60, height: 16 }}
                 />
@@ -251,7 +274,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
         <span>{link.text}</span>
       );
 
-      if (link.isExternal) {
+      if (link.isExternal) { // 新开一个 tab 页
         return (
           <a
             key={link.itemKey}
@@ -267,7 +290,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
       }
 
       let targetPath = link.to;
-      if (link.itemKey === 'console' && !userState.user) {
+      if (link.itemKey === 'console' && !userState.user) { // 访问 console 时，用户必须是登录的。
         targetPath = '/login';
       }
 
@@ -284,6 +307,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     });
   };
 
+  // 渲染用户信息区域
   const renderUserArea = () => {
     if (isLoading) {
       return (
@@ -309,9 +333,9 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
       );
     }
 
-    if (userState.user) {
+    if (userState.user) { // 已登录
       return (
-        <Dropdown
+        <Dropdown /*下拉列表*/
           position="bottomRight"
           render={
             <Dropdown.Menu className="!bg-semi-color-bg-overlay !border-semi-color-border !shadow-lg !rounded-lg dark:!bg-gray-700 dark:!border-gray-600">
@@ -364,7 +388,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
             theme="borderless"
             type="tertiary"
             className="flex items-center gap-1.5 !p-1 !rounded-full hover:!bg-semi-color-fill-1 dark:hover:!bg-gray-700 !bg-semi-color-fill-0 dark:!bg-semi-color-fill-1 dark:hover:!bg-semi-color-fill-2"
-          >
+          > {/*显示用户名*/}
             <Avatar
               size="extra-small"
               color={stringToColor(userState.user.username)}
@@ -381,7 +405,9 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
           </Button>
         </Dropdown>
       );
-    } else {
+    } else { // 未登录
+
+      // 是否显示注册按钮
       const showRegisterButton = !isSelfUseMode;
 
       const commonSizingAndLayoutClass = "flex items-center justify-center !py-[10px] !px-1.5";
@@ -440,6 +466,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
 
   return (
     <header className="text-semi-color-text-0 sticky top-0 z-50 transition-colors duration-300 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-lg">
+      {/* NoticeModal 公告弹框*/}
       <NoticeModal
         visible={noticeVisible}
         onClose={handleNoticeClose}
@@ -450,7 +477,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
       <div className="w-full px-2">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <div className="md:hidden">
+            <div className="md:hidden"> {/*在中等屏幕以上的元素隐藏此 DOM， 即 PC端隐藏，移动端显示*/}
               <Button
                 icon={
                   isConsoleRoute
@@ -476,6 +503,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
                 className="!p-2 !text-current focus:!bg-semi-color-fill-1 dark:focus:!bg-gray-700"
               />
             </div>
+            {/* Logo */}
             <Link to="/" onClick={() => handleNavLinkClick('home')} className="flex items-center gap-2 group ml-2">
               <Skeleton
                 loading={isLoading}
@@ -519,6 +547,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
                 </div>
               </div>
             </Link>
+            {/* 自用模式、演示模式 */}
             {(isSelfUseMode || isDemoSiteMode) && !isLoading && (
               <div className="md:hidden">
                 <Tag
@@ -531,12 +560,12 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
                 </Tag>
               </div>
             )}
-
+            {/*渲染 nav links*/}
             <nav className="hidden md:flex items-center gap-1 lg:gap-2 ml-6">
               {renderNavLinks(false, isLoading)}
             </nav>
           </div>
-
+          {/*公告、切换主题、切换语言等按钮*/}
           <div className="flex items-center gap-2 md:gap-3">
             {isNewYear && (
               <Dropdown
@@ -625,6 +654,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
         </div>
       </div>
 
+      {/*中等以上的屏幕隐藏*/}
       <div className="md:hidden">
         <div
           className={`

@@ -26,6 +26,7 @@ var logCount int
 var setupLogLock sync.Mutex
 var setupLogWorking bool
 
+// SetupLogger 设置日志记录文件
 func SetupLogger() {
 	if *LogDir != "" {
 		ok := setupLogLock.TryLock()

@@ -2,6 +2,7 @@ export const MOBILE_BREAKPOINT = 768;
 
 import { useSyncExternalStore } from 'react';
 
+// 判断是否为移动端
 export const useIsMobile = () => {
   const query = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
   return useSyncExternalStore(

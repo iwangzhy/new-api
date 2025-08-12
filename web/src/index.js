@@ -22,8 +22,11 @@ if (typeof window !== 'undefined') {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
+  /* 严格模式 */
   <React.StrictMode>
+    {/* 自用模式 */}
     <StatusProvider>
+      {/* 当前用户 */}
       <UserProvider>
         <BrowserRouter
           future={{
@@ -31,6 +34,7 @@ root.render(
             v7_relativeSplatPath: true,
           }}
         >
+          {/* 主题 */}
           <ThemeProvider>
             <PageLayout />
           </ThemeProvider>
