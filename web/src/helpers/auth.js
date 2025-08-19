@@ -13,6 +13,7 @@ export function authHeader() {
   }
 }
 
+// react 组件
 export const AuthRedirect = ({ children }) => {
   const user = localStorage.getItem('user');
 

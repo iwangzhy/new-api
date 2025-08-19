@@ -38,12 +38,14 @@ const SiderBar = ({ onNavigate = () => { } }) => {
   const { t } = useTranslation();
   const [collapsed, toggleCollapsed] = useSidebarCollapsed();
 
+  //  选择的菜单 item，默认是 home
   const [selectedKeys, setSelectedKeys] = useState(['home']);
   const [chatItems, setChatItems] = useState([]);
   const [openedKeys, setOpenedKeys] = useState([]);
   const location = useLocation();
   const [routerMapState, setRouterMapState] = useState(routerMap);
 
+  /* 控制台 */
   const workspaceItems = useMemo(
     () => [
       {
@@ -90,6 +92,7 @@ const SiderBar = ({ onNavigate = () => { } }) => {
     ],
   );
 
+  /* 个人中心 */
   const financeItems = useMemo(
     () => [
       {
@@ -106,6 +109,7 @@ const SiderBar = ({ onNavigate = () => { } }) => {
     [t],
   );
 
+  /* 管理员 */
   const adminItems = useMemo(
     () => [
       {
@@ -136,6 +140,7 @@ const SiderBar = ({ onNavigate = () => { } }) => {
     [isAdmin(), isRoot(), t],
   );
 
+  /* 聊天 */
   const chatMenuItems = useMemo(
     () => [
       {

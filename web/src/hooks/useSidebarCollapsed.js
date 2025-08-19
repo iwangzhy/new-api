@@ -2,6 +2,7 @@ import {useCallback, useState} from 'react';
 
 const KEY = 'default_collapse_sidebar';
 
+// 自定义 hook
 export const useSidebarCollapsed = () => {
   // 侧栏是否折叠，（ 从 localStorage 读取 ，默认是 false）
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(KEY) === 'true');

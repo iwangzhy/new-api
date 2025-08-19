@@ -139,6 +139,7 @@ const PageLayout = () => {
               width: 'var(--sidebar-current-width)',
             }}
           >
+            {/* 侧边栏 */}
             <SiderBar onNavigate={() => { if (isMobile) setDrawerOpen(false); }} />
           </Sider>
         )}
